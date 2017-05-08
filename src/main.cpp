@@ -26,6 +26,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 800;
+GLfloat opacidad = 0.2f;
 
 // The MAIN function, from here we start the application and run the game loop
 int main()
@@ -55,7 +56,7 @@ int main()
 
 
 	// Build and compile our shader program
-	shader Shader("./src/SimpleVertexShader.vertexshader", "./src/SimpleFragmentShader.fragmentshader");
+	shader Shader("./src/textureVertex.vertexshader.vertexshader", "./src/textureFragment.fragmentshader.fragmentshader");
 
 
 	// Set up vertex data (and buffer(s)) and attribute pointers
@@ -158,6 +159,10 @@ int main()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
 		glUniform1i(glGetUniformLocation(Shader.Program, "ourTexture2"), 1);
+
+
+		glUniform1f(glGetUniformLocation(Shader.Program, "opacidad"), opacidad);
+
 		
 
 		// Draw container
@@ -182,4 +187,20 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 {
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
+
+	if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
+
+		opacidad += 0.1f;
+		if (opacidad >= 1.0f) {
+			opacidad = 1.0f;
+		}
+
+	}
+	if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
+
+		opacidad -= 0.1f;
+		if (opacidad <= 0.0f) {
+			opacidad = 0.0f;
+		}
+	}
 }
