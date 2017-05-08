@@ -22,7 +22,7 @@ using namespace glm;
 
 // Function prototypes
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
-
+void DoMovement(GLFWwindow* window);
 
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 600;
@@ -207,7 +207,8 @@ int main()
 		lastFrame = currentFrame;
 		// Check if any events have been activated (key pressed, mouse moved etc.) and call corresponding response functions
 		glfwPollEvents();
-		
+		DoMovement(window);
+
 		// Render
 		// Clear the color buffer
 		glClearColor(0.8f, 0.3f, 0.3f, 1.0f);
@@ -319,7 +320,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		--rotationY;
 	}
 
-	GLfloat speedCamera = 3.0f * deltaTime;
+	/*GLfloat speedCamera = 3.0f * deltaTime;
 
 	if (key == GLFW_KEY_W && action == GLFW_PRESS) {
 
@@ -337,12 +338,40 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	if (key == GLFW_KEY_D && action == GLFW_PRESS) {
 
 		cameraPosition += glm::normalize(glm::cross(cameraFront, cameraUP)) * speedCamera;
-	}
+	}*/
 
 
 }
 
+void DoMovement(GLFWwindow* window) {
 
+	GLfloat speedCamera = 3.0f * deltaTime;
+
+
+
+	int StatusW = glfwGetKey(window, GLFW_KEY_W);
+	int StatusS = glfwGetKey(window, GLFW_KEY_S);
+	int StatusA = glfwGetKey(window, GLFW_KEY_A);
+	int StatusD = glfwGetKey(window, GLFW_KEY_D);
+
+	if (StatusW == GLFW_PRESS) {
+		cameraPosition += speedCamera * cameraFront;
+
+	}
+	if (StatusS == GLFW_PRESS) {
+
+		cameraPosition -= speedCamera * cameraFront;
+	}
+	if (StatusA == GLFW_PRESS) {
+
+		cameraPosition -= glm::normalize(glm::cross(cameraFront, cameraUP)) * speedCamera;
+	}
+	if (StatusD == GLFW_PRESS) {
+
+		cameraPosition += glm::normalize(glm::cross(cameraFront, cameraUP)) * speedCamera;
+	}
+
+}
 
 mat4 LookAtFunction(const vec3& Eye, const vec3& Center, const vec3& Up)
 {
