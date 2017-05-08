@@ -150,12 +150,6 @@ int main()
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 
-	
-	
-
-
-
-
 	// Game loop
 	while (!glfwWindowShouldClose(window))
 	{
@@ -167,8 +161,7 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		// Activate shader
-		Shader.Use();
+	
 
 		// Bind Textures using texture units
 		glActiveTexture(GL_TEXTURE0);
@@ -181,18 +174,27 @@ int main()
 		//MixValue to FragmentShader
 		glUniform1f(glGetUniformLocation(Shader.Program, "opacidad"), opacidad);
 
+		// Activate shader
+		Shader.Use();
+
 		//Transformations
 		glm::mat4 transform;
+		glm::mat4 camara;
+		glm::mat4 fov;
+
+		transform = glm::rotate(transform, -55.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+		camara = glm::translate(camara, glm::vec3(0.0f, 0.0f, -3.0f));
+		fov = glm::perspective(45.0f, (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
+
 		
-		//trans = glm::rotate(trans, 90.0f, glm::vec3(0.0, 0.0, 0.0));
-		transform = glm::rotate(transform, angleRotation, glm::vec3(0.0f, 0.0f, 1.0f));
-		transform = glm::scale(transform, glm::vec3(0.5f, -0.5f, 0.0f));
-		transform = glm::translate(transform, glm::vec3(0.5f, 0.5f, 0.0f));
 		
-		//transform = glm::rotate(transform, angle);
-		//Transform input
 		GLuint transformLoc = glGetUniformLocation(Shader.Program, "matTransformation");
+		GLuint camaraLoc = glGetUniformLocation(Shader.Program, "camaraTransformation");
+		GLuint fovLoc = glGetUniformLocation(Shader.Program, "fovTransformation");
+
 		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+		glUniformMatrix4fv(camaraLoc, 1, GL_FALSE, glm::value_ptr(camara));
+		glUniformMatrix4fv(fovLoc, 1, GL_FALSE, glm::value_ptr(fov));
 
 		// Draw container
 		glBindVertexArray(VAO);
