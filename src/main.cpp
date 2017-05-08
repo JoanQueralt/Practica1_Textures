@@ -185,9 +185,10 @@ int main()
 		glm::mat4 transform;
 		
 		//trans = glm::rotate(trans, 90.0f, glm::vec3(0.0, 0.0, 0.0));
+		transform = glm::rotate(transform, angleRotation, glm::vec3(0.0f, 0.0f, 1.0f));
 		transform = glm::scale(transform, glm::vec3(0.5f, -0.5f, 0.0f));
 		transform = glm::translate(transform, glm::vec3(0.5f, 0.5f, 0.0f));
-		transform = glm::rotate(transform, angleRotation, glm::vec3(0.0f, 0.0f, 1.0f));
+		
 		//transform = glm::rotate(transform, angle);
 		//Transform input
 		GLuint transformLoc = glGetUniformLocation(Shader.Program, "matTransformation");
