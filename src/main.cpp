@@ -17,6 +17,7 @@
 #include "Shader.h"
 
 using namespace std;
+using namespace glm;
 
 
 // Function prototypes
@@ -105,7 +106,20 @@ int main()
 		0.5f ,  0.5f,  0.5f,  1.0f, 0.0f,
 		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
 		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-	};;
+	};
+
+	vec3 CubesPositionBuffer[] = {
+		vec3(0.0f ,  0.0f,  0.0f),
+		vec3(2.0f ,  5.0f, -15.0f),
+		vec3(-1.5f, -2.2f, -2.5f),
+		vec3(-3.8f, -2.0f, -12.3f),
+		vec3(2.4f , -0.4f, -3.5f),
+		vec3(-1.7f,  3.0f, -7.5f),
+		vec3(1.3f , -2.0f, -2.5f),
+		vec3(1.5f ,  2.0f, -2.5f),
+		vec3(1.5f ,  0.2f, -1.5f),
+		vec3(-1.3f,  1.0f, -1.5f)
+	};
 
 	GLuint VBO, VAO, EBO;
 	glGenVertexArrays(1, &VAO);
@@ -177,7 +191,7 @@ int main()
 
 		// Render
 		// Clear the color buffer
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClearColor(0.8f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
@@ -213,7 +227,30 @@ int main()
 
 		// Draw container
 		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		for (int i = 0; i < 10; i++) {
+
+			if (i == 0) {
+				glm::mat4 model2;
+				model2 = glm::translate(model2, CubesPositionBuffer[i]);
+				
+				model2 = glm::rotate(model, 1.0f, glm::vec3(rotationX, rotationY, 0.0f));
+				glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model2));
+				glDrawArrays(GL_TRIANGLES, 0, 36);
+			}
+			else {
+				glm::mat4 model2;
+				model2 = glm::translate(model2, CubesPositionBuffer[i]);
+				GLfloat angle = 1.0f * i;
+				model2 = glm::rotate(model2, (GLfloat)glfwGetTime()*angle, vec3(0.7f, 1.3f, 5.0f));
+				glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model2));
+				glDrawArrays(GL_TRIANGLES, 0, 36);
+
+
+			}
+			
+
+		}
+	
 		glBindVertexArray(0);
 
 		// Swap the screen buffers
