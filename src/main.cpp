@@ -18,7 +18,16 @@
 //Textures
 #include "SOIL.h"
 
+//Transformations
+#include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
+#include <gtc/type_ptr.hpp>
+
+
 using namespace std;
+using namespace glm;
+
+
 
 
 // Function prototypes
@@ -27,6 +36,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 800;
 GLfloat opacidad = 0.2f;
+GLfloat angleRotation = 0.f;
+
+//GLfloat rotationVariableL = 0.0f;
+//GLfloat rotationVariableR = 0.0f;
 
 // The MAIN function, from here we start the application and run the game loop
 int main()
@@ -137,6 +150,11 @@ int main()
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 
+	
+	
+
+
+
 
 	// Game loop
 	while (!glfwWindowShouldClose(window))
@@ -160,10 +178,20 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, texture2);
 		glUniform1i(glGetUniformLocation(Shader.Program, "ourTexture2"), 1);
 
-
+		//MixValue to FragmentShader
 		glUniform1f(glGetUniformLocation(Shader.Program, "opacidad"), opacidad);
 
+		//Transformations
+		glm::mat4 transform;
 		
+		//trans = glm::rotate(trans, 90.0f, glm::vec3(0.0, 0.0, 0.0));
+		transform = glm::scale(transform, glm::vec3(0.5f, -0.5f, 0.0f));
+		transform = glm::translate(transform, glm::vec3(0.5f, 0.5f, 0.0f));
+		transform = glm::rotate(transform, angleRotation, glm::vec3(0.0f, 0.0f, 1.0f));
+		//transform = glm::rotate(transform, angle);
+		//Transform input
+		GLuint transformLoc = glGetUniformLocation(Shader.Program, "matTransformation");
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
 
 		// Draw container
 		glBindVertexArray(VAO);
@@ -203,4 +231,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 			opacidad = 0.0f;
 		}
 	}
+
+	if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) {
+		angleRotation += 1.f;
+	}
+
+	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) {
+		angleRotation -= 1.f;
+	}
+
+
 }
