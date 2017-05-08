@@ -23,6 +23,7 @@ using namespace glm;
 // Function prototypes
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
+
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 600;
 
@@ -31,6 +32,20 @@ GLfloat rotationY = 0.0f;
 
 GLfloat opacidad = 0.0f;
 GLboolean texture = true;
+
+
+glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUP = glm::vec3(0.0f, 1.0f, 0.0f);
+
+//time
+
+GLfloat deltaTime = 0.0f;
+GLfloat lastFrame = 0.0f;
+
+
+
+
 // The MAIN function, from here we start the application and run the game loop
 int main()
 {
@@ -186,9 +201,13 @@ int main()
 	// Game loop
 	while (!glfwWindowShouldClose(window))
 	{
+
+		GLfloat currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
 		// Check if any events have been activated (key pressed, mouse moved etc.) and call corresponding response functions
 		glfwPollEvents();
-
+		
 		// Render
 		// Clear the color buffer
 		glClearColor(0.8f, 0.3f, 0.3f, 1.0f);
@@ -210,42 +229,19 @@ int main()
 
 		//Camera
 
-		//inici Camera
-		vec3 cameraInit = glm::vec3(0.0f, 0.0f, 3.0f);
-		//Punt zero Coordenades
-		vec3 zeroCoord = glm::vec3(0.0f, 0.0f, 0.0f);
-		//vector director camara
-		vec3 vectorDirCam = normalize(cameraInit - zeroCoord);
-
-		vec3 vectorUpCam = vec3(0.0f, 1.0f, 0.0f);
-		vec3 vectorRightCam = normalize(cross(vectorUpCam, vectorDirCam));
-		
-		vec3 vectorDirUp = cross(vectorDirCam, vectorRightCam);
-
-		//Matrius
-		GLfloat radio = 8.0f;
-		GLfloat X = sin(glfwGetTime()) * radio;
-		GLfloat Z = cos(glfwGetTime()) * radio;
+		// Camera/View transformation
 		glm::mat4 view;
-		view = glm::lookAt(glm::vec3(X, 0.0, Z), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
-
-
-
-		// Create transformations
-		glm::mat4 model;
-		
+		view = LookAtFunction(cameraPosition, cameraPosition + cameraFront, cameraUP);
+		// Projection 
 		glm::mat4 projection;
-		model = glm::rotate(model, 1.0f, glm::vec3(rotationX, rotationY, 0.0f));
-	
 		projection = glm::perspective(45.0f, (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
-		// Get their uniform location
+
+		// Get the uniform locations
 		GLint modelLoc = glGetUniformLocation(Shader.Program, "model");
 		GLint viewLoc = glGetUniformLocation(Shader.Program, "view");
 		GLint projLoc = glGetUniformLocation(Shader.Program, "projection");
-		// Pass them to the shaders
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		// Pass the matrices to the shader
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-		// Note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
 		// Draw container
@@ -256,7 +252,7 @@ int main()
 				glm::mat4 model2;
 				model2 = glm::translate(model2, CubesPositionBuffer[i]);
 				
-				model2 = glm::rotate(model, 1.0f, glm::vec3(rotationX, rotationY, 0.0f));
+				model2 = glm::rotate(model2, 1.0f, glm::vec3(rotationX, rotationY, 0.0f));
 				glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model2));
 				glDrawArrays(GL_TRIANGLES, 0, 36);
 			}
@@ -296,6 +292,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 	if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
 		opacidad = 0.0f;
+		
 	}
 
 	if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
@@ -322,6 +319,60 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		--rotationY;
 	}
 
+	GLfloat speedCamera = 3.0f * deltaTime;
+
+	if (key == GLFW_KEY_W && action == GLFW_PRESS) {
+
+		cameraPosition += speedCamera * cameraFront;
+
+	}
+	if (key == GLFW_KEY_S && action == GLFW_PRESS) {
+
+		cameraPosition -= speedCamera * cameraFront; 
+	}
+	if (key == GLFW_KEY_A && action == GLFW_PRESS) {
+
+		cameraPosition -= glm::normalize(glm::cross(cameraFront, cameraUP)) * speedCamera;
+	}
+	if (key == GLFW_KEY_D && action == GLFW_PRESS) {
+
+		cameraPosition += glm::normalize(glm::cross(cameraFront, cameraUP)) * speedCamera;
+	}
 
 
+}
+
+
+
+mat4 LookAtFunction(const vec3& Eye, const vec3& Center, const vec3& Up)
+{
+	mat4 Matrix;
+
+	vec3 X, Y, Z;
+	Z = Eye - Center;
+	normalize(Z);
+	Y = Up;
+	X = cross(Y, Z);
+	Y = cross(Z,X);
+	normalize(X);
+	normalize(Y);
+
+	Matrix[0][0] = X.x;
+	Matrix[1][0] = X.y;
+	Matrix[2][0] = X.z;
+	Matrix[3][0] = -dot(X,Eye);
+	Matrix[0][1] = Y.x;
+	Matrix[1][1] = Y.y;
+	Matrix[2][1] = Y.z;
+	Matrix[3][1] = -dot(Y,Eye);
+	Matrix[0][2] = Z.x;
+	Matrix[1][2] = Z.y;
+	Matrix[2][2] = Z.z;
+	Matrix[3][2] = -dot(Z,Eye);
+	Matrix[0][3] = 0;
+	Matrix[1][3] = 0;
+	Matrix[2][3] = 0;
+	Matrix[3][3] = 1.0f;
+
+	return Matrix;
 }
