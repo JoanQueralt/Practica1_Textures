@@ -16,12 +16,17 @@
 // Other includes
 #include "Shader.h"
 
+using namespace std;
+
 
 // Function prototypes
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 600;
+
+GLfloat rotationX = 10.0f;
+GLfloat rotationY = 0.0f;
 
 // The MAIN function, from here we start the application and run the game loop
 int main()
@@ -45,6 +50,7 @@ int main()
 	glewExperimental = GL_TRUE;
 	// Initialize GLEW to setup the OpenGL Function pointers
 	glewInit();
+	glEnable(GL_DEPTH_TEST);
 
 	// Define the viewport dimensions
 	glViewport(0, 0, WIDTH, HEIGHT);
@@ -55,29 +61,60 @@ int main()
 
 
 	// Set up vertex data (and buffer(s)) and attribute pointers
-	GLfloat vertices[] = {
-		// Positions          // Texture Coords
-		0.5f,  0.5f, 0.0f,   1.0f, 1.0f, // Top Right
-		0.5f, -0.5f, 0.0f,   1.0f, 0.0f, // Bottom Right
-		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, // Bottom Left
-		-0.5f,  0.5f, 0.0f,   0.0f, 1.0f  // Top Left 
-	};
-	GLuint indices[] = {  // Note that we start from 0!
-		0, 1, 3, // First Triangle
-		1, 2, 3  // Second Triangle
-	};
+	GLfloat VertexBufferCube[] = {
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+		0.5f , -0.5f, -0.5f,  1.0f, 0.0f,
+		0.5f ,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f ,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		0.5f , -0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f ,  0.5f,  0.5f,  1.0f, 1.0f,
+		0.5f ,  0.5f,  0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		0.5f ,  0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f ,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f , -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f , -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f , -0.5f,  0.5f,  0.0f, 0.0f,
+		0.5f ,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f , -0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f , -0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f , -0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f ,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f ,  0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f ,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+	};;
+
 	GLuint VBO, VAO, EBO;
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
+
 
 	glBindVertexArray(VAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(VertexBufferCube), VertexBufferCube, GL_STATIC_DRAW);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	// Position attribute
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
@@ -138,7 +175,7 @@ int main()
 		// Render
 		// Clear the color buffer
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
 		// Bind Textures using texture units
@@ -156,7 +193,7 @@ int main()
 		glm::mat4 model;
 		glm::mat4 view;
 		glm::mat4 projection;
-		model = glm::rotate(model, -20.0f, glm::vec3(50.0f, 0.0f, 0.0f));
+		model = glm::rotate(model, 1.0f, glm::vec3(rotationX, rotationY, 0.0f));
 		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
 		projection = glm::perspective(45.0f, (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
 		// Get their uniform location
@@ -171,7 +208,7 @@ int main()
 
 		// Draw container
 		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
 
 		// Swap the screen buffers
@@ -191,4 +228,35 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 {
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
+
+	if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
+		//Change TEXTURA 1
+	}
+
+	if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
+		//Change TEXTURA 2
+	}
+
+	if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
+
+		++rotationX;
+	}
+
+	if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
+
+		--rotationX;
+	}
+
+	if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) {
+
+		++rotationY;
+	}
+
+	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) {
+
+		--rotationY;
+	}
+
+
+
 }
