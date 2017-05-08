@@ -28,6 +28,8 @@ const GLuint WIDTH = 800, HEIGHT = 600;
 GLfloat rotationX = 10.0f;
 GLfloat rotationY = 0.0f;
 
+GLfloat opacidad = 0.0f;
+GLboolean texture = true;
 // The MAIN function, from here we start the application and run the game loop
 int main()
 {
@@ -129,9 +131,9 @@ int main()
 						  // Load and create a texture 
 	GLuint texture1;
 	GLuint texture2;
-	// ====================
+
 	// Texture 1
-	// ====================
+
 	glGenTextures(1, &texture1);
 	glBindTexture(GL_TEXTURE_2D, texture1); // All upcoming GL_TEXTURE_2D operations now have effect on our texture object
 											// Set our texture parameters
@@ -146,10 +148,11 @@ int main()
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
 	glGenerateMipmap(GL_TEXTURE_2D);
 	SOIL_free_image_data(image);
-	glBindTexture(GL_TEXTURE_2D, 0); // Unbind texture when done, so we won't accidentily mess up our texture.
-									 // ===================
-									 // Texture 2
-									 // ===================
+	glBindTexture(GL_TEXTURE_2D, 0);
+	// Unbind texture when done, so we won't accidentily mess up our texture.
+
+	// Texture 2
+
 	glGenTextures(1, &texture2);
 	glBindTexture(GL_TEXTURE_2D, texture2);
 	// Set our texture parameters
@@ -185,6 +188,8 @@ int main()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
 		glUniform1i(glGetUniformLocation(Shader.Program, "ourTexture2"), 1);
+
+		glUniform1f(glGetUniformLocation(Shader.Program, "opacidad"), opacidad);
 
 		// Activate shader
 		Shader.Use();
@@ -230,11 +235,11 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		glfwSetWindowShouldClose(window, GL_TRUE);
 
 	if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
-		//Change TEXTURA 1
+		opacidad = 0.0f;
 	}
 
-	if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
-		//Change TEXTURA 2
+	if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
+		opacidad = 1.0f;
 	}
 
 	if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
