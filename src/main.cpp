@@ -19,9 +19,13 @@
 using namespace std;
 using namespace glm;
 
+int screenWithd, screenHeight;
+
 
 // Function prototypes
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
+void mouse_callback(GLFWwindow* window, int mode, int  value);
+void funcionScroll(GLFWwindow* window, double xpos, double ypos);
 void DoMovement(GLFWwindow* window);
 
 // Window dimensions
@@ -37,6 +41,12 @@ GLboolean texture = true;
 glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUP = glm::vec3(0.0f, 1.0f, 0.0f);
+
+GLfloat yawVar = -90.0f;
+GLfloat pitchVar = 0.0f;
+GLfloat lastX = 400.0f;
+GLfloat lastY = 400.0f;
+GLfloat fov = 45.0f;
 
 //time
 
@@ -58,20 +68,29 @@ int main()
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
 	// Create a GLFWwindow object that we can use for GLFW's functions
-	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "LearnOpenGL", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Practica1", nullptr, nullptr);
 	glfwMakeContextCurrent(window);
-
-	// Set the required callback functions
-	glfwSetKeyCallback(window, key_callback);
 
 	// Set this to true so GLEW knows to use a modern approach to retrieving function pointers and extensions
 	glewExperimental = GL_TRUE;
 	// Initialize GLEW to setup the OpenGL Function pointers
 	glewInit();
-	glEnable(GL_DEPTH_TEST);
+
+	// Set the required callback functions
+	
+	glfwSetKeyCallback(window, key_callback);
+	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetScrollCallback(window, funcionScroll);
+	
+	
+
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	
 
 	// Define the viewport dimensions
 	glViewport(0, 0, WIDTH, HEIGHT);
+
+	glEnable(GL_DEPTH_TEST);
 
 
 	// Build and compile our shader program
@@ -136,7 +155,9 @@ int main()
 		vec3(-1.3f,  1.0f, -1.5f)
 	};
 
-	GLuint VBO, VAO, EBO;
+	glfwGetTime();
+
+	GLuint VBO, VAO;
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
 
@@ -154,10 +175,12 @@ int main()
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(2);
 
+	glEnable(GL_DEPTH_TEST);
+
 	glBindVertexArray(0); // Unbind VAO
 
 
-						  // Load and create a texture 
+	// Load and create a texture 
 	GLuint texture1;
 	GLuint texture2;
 
@@ -165,7 +188,7 @@ int main()
 
 	glGenTextures(1, &texture1);
 	glBindTexture(GL_TEXTURE_2D, texture1); // All upcoming GL_TEXTURE_2D operations now have effect on our texture object
-											// Set our texture parameters
+	// Set our texture parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// Set texture wrapping to GL_REPEAT
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	// Set texture filtering
@@ -201,18 +224,23 @@ int main()
 	// Game loop
 	while (!glfwWindowShouldClose(window))
 	{
-
+		//deltaTime
 		GLfloat currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
+
 		// Check if any events have been activated (key pressed, mouse moved etc.) and call corresponding response functions
 		glfwPollEvents();
 		DoMovement(window);
+		//mouse_callback(window, lastX, lastY);
+
 
 		// Render
 		// Clear the color buffer
 		glClearColor(0.8f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		
 
 
 		// Bind Textures using texture units
@@ -232,10 +260,10 @@ int main()
 
 		// Camera/View transformation
 		glm::mat4 view;
-		view = LookAtFunction(cameraPosition, cameraPosition + cameraFront, cameraUP);
+		view = lookAt(cameraPosition, cameraPosition + cameraFront, cameraUP);
 		// Projection 
 		glm::mat4 projection;
-		projection = glm::perspective(45.0f, (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
+		projection = glm::perspective(fov, (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
 
 		// Get the uniform locations
 		GLint modelLoc = glGetUniformLocation(Shader.Program, "model");
@@ -279,7 +307,7 @@ int main()
 	// Properly de-allocate all resources once they've outlived their purpose
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
-	glDeleteBuffers(1, &EBO);
+	
 	// Terminate GLFW, clearing any resources allocated by GLFW.
 	glfwTerminate();
 	return 0;
@@ -320,27 +348,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		--rotationY;
 	}
 
-	/*GLfloat speedCamera = 3.0f * deltaTime;
-
-	if (key == GLFW_KEY_W && action == GLFW_PRESS) {
-
-		cameraPosition += speedCamera * cameraFront;
-
-	}
-	if (key == GLFW_KEY_S && action == GLFW_PRESS) {
-
-		cameraPosition -= speedCamera * cameraFront; 
-	}
-	if (key == GLFW_KEY_A && action == GLFW_PRESS) {
-
-		cameraPosition -= glm::normalize(glm::cross(cameraFront, cameraUP)) * speedCamera;
-	}
-	if (key == GLFW_KEY_D && action == GLFW_PRESS) {
-
-		cameraPosition += glm::normalize(glm::cross(cameraFront, cameraUP)) * speedCamera;
-	}*/
-
-
+	
 }
 
 void DoMovement(GLFWwindow* window) {
@@ -373,6 +381,59 @@ void DoMovement(GLFWwindow* window) {
 
 }
 
+bool firstMouse = true;
+void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+
+
+	
+	if (firstMouse)
+	{
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+
+	GLfloat xoffset = xpos - lastX;
+	GLfloat yoffset = lastY - ypos; // Reversed since y-coordinates go from bottom to left
+	lastX = xpos;
+	lastY = ypos;
+
+	GLfloat sensitivity = 0.05;	// Change this value to your liking
+	xoffset *= sensitivity;
+	yoffset *= sensitivity;
+
+	yawVar += xoffset;
+	pitchVar += yoffset;
+
+	// Make sure that when pitch is out of bounds, screen doesn't get flipped
+	if (pitchVar > 89.0f) {
+		pitchVar = 89.0f;
+	}
+	if (pitchVar < -89.0f) {
+		pitchVar = -89.0f;
+	}
+		
+
+	glm::vec3 front;
+	front.x = cos(glm::radians(yawVar)) * cos(glm::radians(pitchVar));
+	front.y = sin(glm::radians(pitchVar));
+	front.z = sin(glm::radians(yawVar)) * cos(glm::radians(pitchVar));
+	cameraFront = glm::normalize(front);
+
+
+}
+
+
+void funcionScroll(GLFWwindow* window, double xoffset, double yoffset) {
+
+	if (fov >= 1.0f && fov <= 45.0f)
+		fov -= yoffset;
+	if (fov <= 1.0f)
+		fov = 1.0f;
+	if (fov >= 45.0f)
+		fov = 45.0f;
+
+}
 mat4 LookAtFunction(const vec3& Eye, const vec3& Center, const vec3& Up)
 {
 	mat4 Matrix;
