@@ -1,45 +1,27 @@
-﻿//GLEW
+﻿#include <iostream>
+
+// GLEW
 #define GLEW_STATIC
-#include <GL\glew.h>
-//GLFW
+#include <GL/glew.h>
 
-#include <GLFW\glfw3.h>
-#include <iostream>
+// GLFW
+#include <GLFW/glfw3.h>
 
-//Shader
-
-#include <string>
-#include <fstream>
-#include <sstream>
-#include  <iostream>
-#include "shader.h"
-#include <vector>
-
-//Textures
-#include "SOIL.h"
-
-//Transformations
-#include <glm.hpp>
+// Other Libs
+#include <SOIL.h>
+// GLM Mathematics
+#include<glm.hpp>
 #include <gtc/matrix_transform.hpp>
 #include <gtc/type_ptr.hpp>
-
-
-using namespace std;
-using namespace glm;
-
-
+// Other includes
+#include "Shader.h"
 
 
 // Function prototypes
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
 // Window dimensions
-const GLuint WIDTH = 800, HEIGHT = 800;
-GLfloat opacidad = 0.2f;
-GLfloat angleRotation = 0.f;
-
-//GLfloat rotationVariableL = 0.0f;
-//GLfloat rotationVariableR = 0.0f;
+const GLuint WIDTH = 800, HEIGHT = 600;
 
 // The MAIN function, from here we start the application and run the game loop
 int main()
@@ -53,7 +35,7 @@ int main()
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
 	// Create a GLFWwindow object that we can use for GLFW's functions
-	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Textures", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "LearnOpenGL", nullptr, nullptr);
 	glfwMakeContextCurrent(window);
 
 	// Set the required callback functions
@@ -74,18 +56,16 @@ int main()
 
 	// Set up vertex data (and buffer(s)) and attribute pointers
 	GLfloat vertices[] = {
-		// Positions          // Colors           // Texture Coords
-		0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // Top Right
-		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // Bottom Right
-		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // Bottom Left
-		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // Top Left 
+		// Positions          // Texture Coords
+		0.5f,  0.5f, 0.0f,   1.0f, 1.0f, // Top Right
+		0.5f, -0.5f, 0.0f,   1.0f, 0.0f, // Bottom Right
+		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, // Bottom Left
+		-0.5f,  0.5f, 0.0f,   0.0f, 1.0f  // Top Left 
 	};
-
 	GLuint indices[] = {  // Note that we start from 0!
 		0, 1, 3, // First Triangle
 		1, 2, 3  // Second Triangle
 	};
-
 	GLuint VBO, VAO, EBO;
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
@@ -100,40 +80,39 @@ int main()
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	// Position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
-	// Color attribute
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(1);
 	// TexCoord attribute
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(2);
 
 	glBindVertexArray(0); // Unbind VAO
 
 
-	// Load and create a texture 
-	GLuint texture;
+						  // Load and create a texture 
+	GLuint texture1;
 	GLuint texture2;
-
-	//TEXTURE 1
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture); // All upcoming GL_TEXTURE_2D operations now have effect on this texture object
-										   // Set the texture wrapping parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// Set texture wrapping to GL_REPEAT (usually basic wrapping method)
+	// ====================
+	// Texture 1
+	// ====================
+	glGenTextures(1, &texture1);
+	glBindTexture(GL_TEXTURE_2D, texture1); // All upcoming GL_TEXTURE_2D operations now have effect on our texture object
+											// Set our texture parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// Set texture wrapping to GL_REPEAT
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	// Set texture filtering parameters
+	// Set texture filtering
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	// Load image, create texture and generate mipmaps
+	// Load, create texture and generate mipmaps
 	int width, height;
 	unsigned char* image = SOIL_load_image("./src/moon.jpg", &width, &height, 0, SOIL_LOAD_RGB);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-	//glGenerateMipmap(GL_TEXTURE_2D);
+	glGenerateMipmap(GL_TEXTURE_2D);
 	SOIL_free_image_data(image);
 	glBindTexture(GL_TEXTURE_2D, 0); // Unbind texture when done, so we won't accidentily mess up our texture.
-
-	//TEXTURE 2
+									 // ===================
+									 // Texture 2
+									 // ===================
 	glGenTextures(1, &texture2);
 	glBindTexture(GL_TEXTURE_2D, texture2);
 	// Set our texture parameters
@@ -153,48 +132,42 @@ int main()
 	// Game loop
 	while (!glfwWindowShouldClose(window))
 	{
-		// Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
+		// Check if any events have been activated (key pressed, mouse moved etc.) and call corresponding response functions
 		glfwPollEvents();
 
 		// Render
-		// Clear the colorbuffer
+		// Clear the color buffer
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-	
 
 		// Bind Textures using texture units
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture);
+		glBindTexture(GL_TEXTURE_2D, texture1);
 		glUniform1i(glGetUniformLocation(Shader.Program, "ourTexture1"), 0);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
 		glUniform1i(glGetUniformLocation(Shader.Program, "ourTexture2"), 1);
 
-		//MixValue to FragmentShader
-		glUniform1f(glGetUniformLocation(Shader.Program, "opacidad"), opacidad);
-
 		// Activate shader
 		Shader.Use();
 
-		//Transformations
-		glm::mat4 transform;
-		glm::mat4 camara;
-		glm::mat4 fov;
-
-		transform = glm::rotate(transform, -55.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-		camara = glm::translate(camara, glm::vec3(0.0f, 0.0f, -3.0f));
-		fov = glm::perspective(45.0f, (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
-
-		
-		
-		GLuint transformLoc = glGetUniformLocation(Shader.Program, "matTransformation");
-		GLuint camaraLoc = glGetUniformLocation(Shader.Program, "camaraTransformation");
-		GLuint fovLoc = glGetUniformLocation(Shader.Program, "fovTransformation");
-
-		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
-		glUniformMatrix4fv(camaraLoc, 1, GL_FALSE, glm::value_ptr(camara));
-		glUniformMatrix4fv(fovLoc, 1, GL_FALSE, glm::value_ptr(fov));
+		// Create transformations
+		glm::mat4 model;
+		glm::mat4 view;
+		glm::mat4 projection;
+		model = glm::rotate(model, -20.0f, glm::vec3(50.0f, 0.0f, 0.0f));
+		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+		projection = glm::perspective(45.0f, (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
+		// Get their uniform location
+		GLint modelLoc = glGetUniformLocation(Shader.Program, "model");
+		GLint viewLoc = glGetUniformLocation(Shader.Program, "view");
+		GLint projLoc = glGetUniformLocation(Shader.Program, "projection");
+		// Pass them to the shaders
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+		// Note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
+		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
 		// Draw container
 		glBindVertexArray(VAO);
@@ -218,30 +191,4 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 {
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
-
-	if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
-
-		opacidad += 0.1f;
-		if (opacidad >= 1.0f) {
-			opacidad = 1.0f;
-		}
-
-	}
-	if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
-
-		opacidad -= 0.1f;
-		if (opacidad <= 0.0f) {
-			opacidad = 0.0f;
-		}
-	}
-
-	if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) {
-		angleRotation += 1.f;
-	}
-
-	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) {
-		angleRotation -= 1.f;
-	}
-
-
 }
