@@ -208,12 +208,35 @@ int main()
 		// Activate shader
 		Shader.Use();
 
+		//Camera
+
+		//inici Camera
+		vec3 cameraInit = glm::vec3(0.0f, 0.0f, 3.0f);
+		//Punt zero Coordenades
+		vec3 zeroCoord = glm::vec3(0.0f, 0.0f, 0.0f);
+		//vector director camara
+		vec3 vectorDirCam = normalize(cameraInit - zeroCoord);
+
+		vec3 vectorUpCam = vec3(0.0f, 1.0f, 0.0f);
+		vec3 vectorRightCam = normalize(cross(vectorUpCam, vectorDirCam));
+		
+		vec3 vectorDirUp = cross(vectorDirCam, vectorRightCam);
+
+		//Matrius
+		GLfloat radio = 8.0f;
+		GLfloat X = sin(glfwGetTime()) * radio;
+		GLfloat Z = cos(glfwGetTime()) * radio;
+		glm::mat4 view;
+		view = glm::lookAt(glm::vec3(X, 0.0, Z), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
+
+
+
 		// Create transformations
 		glm::mat4 model;
-		glm::mat4 view;
+		
 		glm::mat4 projection;
 		model = glm::rotate(model, 1.0f, glm::vec3(rotationX, rotationY, 0.0f));
-		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+	
 		projection = glm::perspective(45.0f, (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
 		// Get their uniform location
 		GLint modelLoc = glGetUniformLocation(Shader.Program, "model");
