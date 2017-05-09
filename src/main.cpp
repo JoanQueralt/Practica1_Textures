@@ -15,6 +15,7 @@
 #include <gtc/type_ptr.hpp>
 // Other includes
 #include "Shader.h"
+#include "../Camara.h"
 
 using namespace std;
 using namespace glm;
