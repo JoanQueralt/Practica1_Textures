@@ -25,7 +25,7 @@ int screenWithd, screenHeight;
 
 // Function prototypes
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
-void mouse_callback(GLFWwindow* window, int mode, int  value);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void funcionScroll(GLFWwindow* window, double xpos, double ypos);
 void DoMovement(GLFWwindow* window);
 
@@ -68,9 +68,12 @@ int main()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
+
 	// Create a GLFWwindow object that we can use for GLFW's functions
 	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Practica1", nullptr, nullptr);
+	
 	glfwMakeContextCurrent(window);
+	
 
 	// Set this to true so GLEW knows to use a modern approach to retrieving function pointers and extensions
 	glewExperimental = GL_TRUE;
@@ -80,13 +83,13 @@ int main()
 	// Set the required callback functions
 	
 	glfwSetKeyCallback(window, key_callback);
-	glfwSetCursorPosCallback(window, mouse_callback);
+	
+	
 	glfwSetScrollCallback(window, funcionScroll);
 	
-	
 
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	//DoMovement(window);
 
 	// Define the viewport dimensions
 	glViewport(0, 0, WIDTH, HEIGHT);
@@ -233,7 +236,7 @@ int main()
 		// Check if any events have been activated (key pressed, mouse moved etc.) and call corresponding response functions
 		glfwPollEvents();
 		DoMovement(window);
-		//mouse_callback(window, lastX, lastY);
+		glfwSetCursorPosCallback(window, mouse_callback);
 
 
 		// Render
@@ -352,6 +355,44 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	
 }
 
+bool firstMouse1 = true;
+void mouse_callback(GLFWwindow * window, double xpos, double ypos)
+{
+	if (firstMouse1)
+	{
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse1 = false;
+	}
+
+	GLfloat xoffset = xpos - lastX;
+	GLfloat yoffset = lastY - ypos; // Reversed since y-coordinates go from bottom to left
+	lastX = xpos;
+	lastY = ypos;
+
+	GLfloat sensitivity = 0.05f;	// Change this value to your liking
+	xoffset *= sensitivity;
+	yoffset *= sensitivity;
+
+	yawVar += xoffset;
+	pitchVar += yoffset;
+
+	// Make sure that when pitch is out of bounds, screen doesn't get flipped
+	if (pitchVar > 89.0f) {
+		pitchVar = 89.0f;
+	}
+	if (pitchVar < -89.0f) {
+		pitchVar = -89.0f;
+	}
+
+
+	glm::vec3 front;
+	front.x = cos(glm::radians(yawVar)) * cos(glm::radians(pitchVar));
+	front.y = sin(glm::radians(pitchVar));
+	front.z = sin(glm::radians(yawVar)) * cos(glm::radians(pitchVar));
+	cameraFront = glm::normalize(front);
+}
+
 void DoMovement(GLFWwindow* window) {
 
 	GLfloat speedCamera = 3.0f * deltaTime;
@@ -382,47 +423,7 @@ void DoMovement(GLFWwindow* window) {
 
 }
 
-bool firstMouse = true;
-void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 
-
-	
-	if (firstMouse)
-	{
-		lastX = xpos;
-		lastY = ypos;
-		firstMouse = false;
-	}
-
-	GLfloat xoffset = xpos - lastX;
-	GLfloat yoffset = lastY - ypos; // Reversed since y-coordinates go from bottom to left
-	lastX = xpos;
-	lastY = ypos;
-
-	GLfloat sensitivity = 0.05;	// Change this value to your liking
-	xoffset *= sensitivity;
-	yoffset *= sensitivity;
-
-	yawVar += xoffset;
-	pitchVar += yoffset;
-
-	// Make sure that when pitch is out of bounds, screen doesn't get flipped
-	if (pitchVar > 89.0f) {
-		pitchVar = 89.0f;
-	}
-	if (pitchVar < -89.0f) {
-		pitchVar = -89.0f;
-	}
-		
-
-	glm::vec3 front;
-	front.x = cos(glm::radians(yawVar)) * cos(glm::radians(pitchVar));
-	front.y = sin(glm::radians(pitchVar));
-	front.z = sin(glm::radians(yawVar)) * cos(glm::radians(pitchVar));
-	cameraFront = glm::normalize(front);
-
-
-}
 
 
 void funcionScroll(GLFWwindow* window, double xoffset, double yoffset) {

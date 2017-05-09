@@ -36,8 +36,8 @@ private:
 
 public:
 	Camara(vec3 position, vec3 direction, GLfloat sensitivity, GLfloat fov);
-	void DoMovement(GLFWwindow * window, Camara cam);
-	void MouseMove(GLFWwindow* window, double xpos, double ypos, Camara cam);
+	void DoMovement(GLFWwindow * window);
+	void MouseMove(GLFWwindow* window, double xpos, double ypos);
 	void MouseScroll(GLFWwindow* window, double xScroll, double yScroll, Camara cam);
 	mat4 LookAt(const vec3& Eye, const vec3& Center, const vec3& Up);
 	GLfloat GetFOV(Camara cam);

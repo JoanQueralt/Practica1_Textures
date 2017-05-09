@@ -6,9 +6,9 @@ Camara::Camara(vec3 position, vec3 direction, GLfloat sensitivity, GLfloat fov)
 {
 }
 
-void Camara::DoMovement(GLFWwindow * window, Camara cam)
+void Camara::DoMovement(GLFWwindow * window)
 {
-	GLfloat speedCamera = 3.0f * cam.Deltatime;
+	GLfloat speedCamera = 3.0f * Deltatime;
 
 
 
@@ -18,58 +18,58 @@ void Camara::DoMovement(GLFWwindow * window, Camara cam)
 	int StatusD = glfwGetKey(window, GLFW_KEY_D);
 
 	if (StatusW == GLFW_PRESS) {
-		cam.cameraPos += speedCamera * cameraFront;
+		cameraPos += speedCamera * cameraFront;
 
 	}
 	if (StatusS == GLFW_PRESS) {
 
-		cam.cameraPos -= speedCamera * cameraFront;
+		cameraPos -= speedCamera * cameraFront;
 	}
 	if (StatusA == GLFW_PRESS) {
 
-		cam.cameraPos -= glm::normalize(glm::cross(cam.cameraFront, cam.cameraUp)) * speedCamera;
+		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * speedCamera;
 	}
 	if (StatusD == GLFW_PRESS) {
 
-		cam.cameraPos += glm::normalize(glm::cross(cam.cameraFront, cam.cameraUp)) * speedCamera;
+		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * speedCamera;
 	}
 }
 
 bool firstMouse = true;
-void Camara::MouseMove(GLFWwindow * window, double xpos, double ypos, Camara cam)
+void Camara::MouseMove(GLFWwindow * window, double xpos, double ypos)
 {
 	if (firstMouse)
 	{
-		cam.LastMx = xpos;
-		cam.LastMy = ypos;
+		LastMx = xpos;
+		LastMy = ypos;
 		firstMouse = false;
 	}
 
-	GLfloat xoffset = xpos - cam.LastMx;
-	GLfloat yoffset = cam.LastMy -ypos; // Reversed since y-coordinates go from bottom to left
-	cam.LastMx = xpos;
-	cam.LastMy = ypos;
+	GLfloat xoffset = xpos - LastMx;
+	GLfloat yoffset = LastMy -ypos; // Reversed since y-coordinates go from bottom to left
+	LastMx = xpos;
+	LastMy = ypos;
 
 	GLfloat sensitivity = 0.05;	// Change this value to your liking
 	xoffset *= sensitivity;
 	yoffset *= sensitivity;
 
-	cam.YAW += xoffset;
-	cam.PITCH += yoffset;
+	YAW += xoffset;
+	PITCH += yoffset;
 
 	// Make sure that when pitch is out of bounds, screen doesn't get flipped
-	if (cam.PITCH > 89.0f) {
-		cam.PITCH = 89.0f;
+	if (PITCH > 89.0f) {
+		PITCH = 89.0f;
 	}
-	if (cam.PITCH < -89.0f) {
-		cam.PITCH = -89.0f;
+	if (PITCH < -89.0f) {
+		PITCH = -89.0f;
 	}
 
 
 	glm::vec3 front;
-	front.x = cos(glm::radians(cam.YAW)) * cos(glm::radians(cam.YAW));
-	front.y = sin(glm::radians(cam.PITCH));
-	front.z = sin(glm::radians(cam.YAW)) * cos(glm::radians(cam.PITCH));
+	front.x = cos(glm::radians(YAW)) * cos(glm::radians(YAW));
+	front.y = sin(glm::radians(PITCH));
+	front.z = sin(glm::radians(YAW)) * cos(glm::radians(PITCH));
 	cameraFront = glm::normalize(front);
 
 }
